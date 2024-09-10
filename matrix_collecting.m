@@ -100,7 +100,7 @@ for i = 1:88
     end
     
 dynamic_field = sprintf('freq_mag_%s', pianoKeys{i}); % Generate field name
-    freq_mag_struct.(dynamic_field) = freq_magnitude{i};  % Store the magnitude
+freq_mag_struct.(dynamic_field) = freq_magnitude{i};  % Store the magnitude
 end
 
 

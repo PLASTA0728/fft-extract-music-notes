@@ -59,7 +59,7 @@ for i = 1:4
             [maxMag, maxIdx] = max(bin_magnitudes); % Find max magnitude in the bin
             
             % Check if the max magnitude is greater than 1/10th of the global maximum
-            if maxMag >= globalMax / 10
+            if maxMag >= globalMax / 20
                 % Add the maximum frequency and its magnitude to the new arrays
                 temp_f = [temp_f, bin_frequencies(maxIdx)];  % Maximum frequency in this bin
                 temp_mag = [temp_mag, maxMag / globalMax];   % Normalized maximum magnitude in this bin
@@ -109,7 +109,7 @@ for i = 1:4
     % Plot the FFT magnitude spectrum as spikes (stem plot without circles)
     subplot(2, 2, i); % Arrange the four plots in a 2x2 grid
     stem(temp_f, temp_mag, 'Marker', 'none', 'LineWidth', 1.2); % Remove markers on spikes
-    title(['FFT of ' fileNames{i} ' (0-3000 Hz, Normalized Magnitude)']);
+    title(['FFT of ' fileNames{i}]);
     xlabel('Frequency (Hz)');
     ylabel('Normalized Magnitude');
     xlim([0 3000]);  % Set frequency range from 0 to 3000 Hz

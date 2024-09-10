@@ -1,5 +1,5 @@
 % File name of the .wav file
-fileName = 'c3c4g4c5.wav';
+fileName = 'C4_G4_C5.wav';
 
 
 % Read the .wav file
@@ -164,20 +164,6 @@ for i = 1:length(frequencies_funda)
 end
 
 
-% Create a matrix of matching frequencies and their corresponding magnitudes from both sources
-matching_results = [matching_freq; matching_mag_funda; matching_mag_chord; mag_after_subtract];
-
-% Output the matching frequencies and magnitudes
-% disp('Matching frequencies and their magnitudes from freq_mag_funda and freq_magnitude:');
-% disp(matching_results);
-
-
-
-% Display the updated temp_mag array
-% disp('Updated temp_mag after subtraction:');
-% disp(temp_mag);
-
-
 % Remove frequencies with magnitudes less than 0.01
 threshold = 15; % Magnitude threshold
 validIndices = temp_mag >= threshold; % Find indices where magnitude is above the threshold
@@ -197,8 +183,6 @@ ylim([0 250]);
 
 % Output the updated frequency and magnitude matrix
 freq_magnitude = [temp_f; temp_mag]; % Create a 2-row matrix: 1st row frequencies, 2nd row magnitudes
-% disp('Updated Frequency and Magnitude matrix:');
-% disp(freq_magnitude);
 end
 
 disp('Notes and their corresponding LowestFreqMagnitude:');
