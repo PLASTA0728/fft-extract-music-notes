@@ -1,6 +1,4 @@
 % List of piano keys from A0 to C8 (88 keys)
-% Assuming the .wav files are named accordingly, e.g., 'A0.wav', 'Bb0.wav', ..., 'C8.wav'
-
 pianoKeys = {'A0', 'Bb0', 'B0', 'C1', 'Db1', 'D1', 'Eb1', 'E1', 'F1', 'Gb1', 'G1', 'Ab1', ...
              'A1', 'Bb1', 'B1', 'C2', 'Db2', 'D2', 'Eb2', 'E2', 'F2', 'Gb2', 'G2', 'Ab2', ...
              'A2', 'Bb2', 'B2', 'C3', 'Db3', 'D3', 'Eb3', 'E3', 'F3', 'Gb3', 'G3', 'Ab3', ...
@@ -10,97 +8,94 @@ pianoKeys = {'A0', 'Bb0', 'B0', 'C1', 'Db1', 'D1', 'Eb1', 'E1', 'F1', 'Gb1', 'G1
              'A6', 'Bb6', 'B6', 'C7', 'Db7', 'D7', 'Eb7', 'E7', 'F7', 'Gb7', 'G7', 'Ab7', ...
              'A7', 'Bb7', 'B7', 'C8'};
 
-% Initialize storage for audio data, sampling rates, frequencies, and magnitudes
-audioData = cell(1, 88); % Store the audio data
-Fs = zeros(1, 88);       % Store the sampling rates
-freq_magnitude = cell(1, 88); % Store frequency and magnitude matrices for each file
+% Initialize storage for frequency-magnitude matrices
+freq_mag_struct = struct();  % Structure to store freq_mag_notename matrices
+maxFreq = 3000;              % Maximum frequency to consider
 
-% Define the maximum frequency range for processing (0-3000 Hz)
-maxFreq = 3000;
-
-% Loop to read all 88 .wav files
+% Loop through all 88 notes
+fprintf('Processing finished:');
 for i = 1:88
-    % Read the .wav file
-    fileName = [pianoKeys{i}, '.mp3']; % Construct the file name
-    [audioData{i}, Fs(i)] = audioread(fileName);
-end
-
-freq_mag_map = containers.Map;
-
-% Loop to process each file and compute FFT
-for i = 1:88
-    % Apply FFT and reduce Nyquist effect (aliasing)
-    n = length(audioData{i});         % Number of samples
-    y_fft = fft(audioData{i});        % Compute the FFT
-    f = (0:n-1)*(Fs(i)/n);            % Frequency vector
-
-    % Nyquist effect reduction: limit the FFT to the positive frequencies
-    y_fft = y_fft(1:floor(n/2));      % Take only the first half (positive frequencies)
-    f = f(1:floor(n/2));              % Corresponding frequency range
-
-    % Filter to only include frequencies within 0-3000 Hz
-    validFreqIdx = f <= maxFreq;      % Find frequencies <= 3000 Hz
-    f = f(validFreqIdx);              % Filter frequencies
-    y_fft = y_fft(validFreqIdx);      % Filter FFT results
+    % Read the corresponding .wav file
+    fileName = ['piano-wav/', pianoKeys{i}, '.wav'];
+    [audioData, Fs] = audioread(fileName);
     
-    % Compute magnitude and normalize by sampling rate
-    mag = abs(y_fft) / Fs(i);         % Magnitudes of the FFT divided by sampling rate
-    globalMax = max(mag);             % Find the global maximum magnitude
+    % Compute FFT
+    n = length(audioData);        % Number of samples
+    y_fft = fft(audioData);       % Compute the FFT
+    f = (0:n-1) * (Fs / n);       % Frequency vector
 
-    % Split frequencies into 20 Hz intervals
-    freqBins = 0:20:maxFreq;          % Create frequency bins of 20 Hz intervals
-    temp_f = [];                      % Initialize new frequency array
-    temp_mag = [];                    % Initialize new magnitude array
-    
-    % Loop over each 20 Hz interval
+    % Limit to positive frequencies (Nyquist reduction)
+    y_fft = y_fft(1:floor(n/2));
+    f = f(1:floor(n/2));
+
+    % Filter frequencies <= maxFreq
+    validFreqIdx = f <= maxFreq;
+    f = f(validFreqIdx);
+    y_fft = y_fft(validFreqIdx);
+
+    % Compute magnitudes and normalize by sampling rate
+    mag = abs(y_fft) / Fs;  
+    globalMax = max(mag);  % Maximum magnitude for normalization
+
+    % Initialize arrays for storing selected frequencies and magnitudes
+    temp_f = [];
+    temp_mag = [];
+
+    % Split frequencies into 20 Hz bins
+    freqBins = 0:20:maxFreq;
+
     for j = 1:length(freqBins)-1
-        % Find the indices of frequencies within the current 20 Hz bin
+        % Find indices within the current 20 Hz bin
         binIdx = (f >= freqBins(j)) & (f < freqBins(j+1));
-        bin_frequencies = f(binIdx);  % Frequencies in the current bin
-        bin_magnitudes = mag(binIdx); % Magnitudes in the current bin
-        
-        % If there are any frequencies in this bin, find the maximum magnitude
+        bin_frequencies = f(binIdx);
+        bin_magnitudes = mag(binIdx);
+
+        % If the bin is non-empty, find the max magnitude
         if ~isempty(bin_magnitudes)
-            [maxMag, maxIdx] = max(bin_magnitudes); % Find max magnitude in the bin
-            
-            % Check if the max magnitude is greater than 1/10th of the global maximum
+            [maxMag, maxIdx] = max(bin_magnitudes);
+
+            % Add to the results if above threshold (globalMax / 10)
             if maxMag >= globalMax / 10
-                % Add the maximum frequency and its magnitude to the new arrays
-                temp_f = [temp_f, bin_frequencies(maxIdx)];  % Maximum frequency in this bin
-                temp_mag = [temp_mag, maxMag / globalMax];   % Normalized maximum magnitude in this bin
+                temp_f = [temp_f, bin_frequencies(maxIdx)];
+                temp_mag = [temp_mag, maxMag / globalMax];  % Normalize magnitude
             end
         end
     end
-    
-    % Check minimum frequency and cancel spikes based on neighboring ranges
-    minFreq = min(temp_f); % Find the minimum frequency in the current results
-    if minFreq > 40
-        % Identify and remove lower magnitude spikes if frequency difference < 40 Hz
+
+    % Remove close frequency spikes (< 40 Hz difference)
+    if ~isempty(temp_f)
         for j = 1:length(temp_f)-1
             if abs(temp_f(j+1) - temp_f(j)) < 40
                 if temp_mag(j) < temp_mag(j+1)
-                    temp_f(j) = NaN;  % Remove lower frequency
-                    temp_mag(j) = NaN; % Remove lower magnitude
+                    temp_f(j) = NaN;  % Mark for removal
+                    temp_mag(j) = NaN;
                 else
-                    temp_f(j+1) = NaN; % Remove lower frequency
-                    temp_mag(j+1) = NaN; % Remove lower magnitude
+                    temp_f(j+1) = NaN;
+                    temp_mag(j+1) = NaN;
                 end
             end
         end
-        
-        % Remove NaN values (lower spikes)
+
+        % Remove NaN entries
         temp_f = temp_f(~isnan(temp_f));
         temp_mag = temp_mag(~isnan(temp_mag));
     end
-    
-    % Normalize magnitudes by the magnitude of the first spike
+
+    % Normalize by the first spike magnitude (if it exists)
     if ~isempty(temp_mag)
-        firstSpikeMagnitude = temp_mag(1); % Use the first spike magnitude for normalization
-        temp_mag = temp_mag / firstSpikeMagnitude; % Normalize all magnitudes
+        firstSpikeMagnitude = temp_mag(1);
+        temp_mag = temp_mag / firstSpikeMagnitude;
     end
-    
-dynamic_field = sprintf('freq_mag_%s', pianoKeys{i}); % Generate field name
-freq_mag_struct.(dynamic_field) = freq_magnitude{i};  % Store the magnitude
+
+    % Create the frequency-magnitude matrix
+    freq_magnitude = [temp_f; temp_mag];
+
+    % Store the matrix in the struct with dynamic field name
+    dynamic_field = sprintf('freq_mag_%s', pianoKeys{i});
+    freq_mag_struct.(dynamic_field) = freq_magnitude;
+
+    % Optional: Display the matrix for the current note
+    fprintf('%s \n', pianoKeys{i});
 end
 
-
+% The result is stored in the struct `freq_mag_struct`

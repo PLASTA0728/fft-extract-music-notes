@@ -1,5 +1,5 @@
 % File name for the single .wav file (C4.wav)
-fileName = 'C4_G4_C5.wav';
+fileName = 'C4.wav';
 
 % Initialize storage for audio data, sampling rate, frequency, and magnitude
 audioData = []; % Store the audio data
