@@ -1,6 +1,6 @@
 % File names of the four specific .wav files
-fileNames = {'C4_G4_C5.wav','C4.wav', 'C5.wav', 'G4.wav'};
-
+fileNames = {'C4.wav','D4.wav', 'E4.wav', 'C4_D4_E4.wav'};
+names = {'C4', 'D4', 'E4', 'C4\_D4\_E4'};
 % Initialize storage for audio data, sampling rates, frequencies, and magnitudes
 audioData = cell(1,4); % Store the audio data
 Fs = zeros(1,4);       % Store the sampling rates
@@ -38,8 +38,8 @@ for i = 1:4
     mag = abs(y_fft) / Fs(i);         % Magnitudes of the FFT divided by sampling rate
     globalMax = max(mag);             % Find the global maximum magnitude
 
-    % Split frequencies into 20 Hz intervals
-    freqBins = 0:20:maxFreq;          % Create frequency bins of 20 Hz intervals
+    % Split frequencies into 15 Hz intervals
+    freqBins = 0:18:maxFreq;          % Create frequency bins of 15 Hz intervals
     new_f = [];                       % Initialize new frequency array
     new_mag = [];                     % Initialize new magnitude array
     
@@ -47,9 +47,9 @@ for i = 1:4
     temp_f = [];  % Store frequencies
     temp_mag = []; % Store magnitudes
     
-    % Loop over each 20 Hz interval
+    % Loop over each 15 Hz interval
     for j = 1:length(freqBins)-1
-        % Find the indices of frequencies within the current 20 Hz bin
+        % Find the indices of frequencies within the current 15 Hz bin
         binIdx = (f >= freqBins(j)) & (f < freqBins(j+1));
         bin_frequencies = f(binIdx);  % Frequencies in the current bin
         bin_magnitudes = mag(binIdx); % Magnitudes in the current bin
@@ -109,24 +109,24 @@ for i = 1:4
     % Plot the FFT magnitude spectrum as spikes (stem plot without circles)
     subplot(2, 2, i); % Arrange the four plots in a 2x2 grid
     stem(temp_f, temp_mag, 'Marker', 'none', 'LineWidth', 1.2); % Remove markers on spikes
-    title(['FFT of ' fileNames{i}]);
+    title(['FFT of ' names{i}]);
     xlabel('Frequency (Hz)');
     ylabel('Normalized Magnitude');
     xlim([0 3000]);  % Set frequency range from 0 to 3000 Hz
 end
 
 % Output frequency and magnitude matrices
-freq_mag_C3 = freq_magnitude{1};  % Frequencies and magnitudes for C3.wav
-freq_mag_C4 = freq_magnitude{2};  % Frequencies and magnitudes for C4.wav
-freq_mag_C5 = freq_magnitude{3};  % Frequencies and magnitudes for C5.wav
-freq_mag_G4 = freq_magnitude{4}; % Frequencies and magnitudes for chord.wav
+freq_mag_C4 = freq_magnitude{1};  % Frequencies and magnitudes for C4.wav
+freq_mag_D4 = freq_magnitude{2};  % Frequencies and magnitudes for D4.wav
+freq_mag_C4_D4_E4 = freq_magnitude{3};  % Frequencies and magnitudes for C4_D4_E4.wav
+freq_mag_E4 = freq_magnitude{4}; % Frequencies and magnitudes for chord.wav
 
 % Display the frequency and magnitude matrices in the command window (optional)
-disp('C3.wav:');
-disp(freq_mag_C3);
 disp('C4.wav:');
 disp(freq_mag_C4);
-disp('C5.wav:');
-disp(freq_mag_C5);
-disp('G4.wav:');
-disp(freq_mag_G4);
+disp('D4.wav:');
+disp(freq_mag_D4);
+disp('C4_D4_E4.wav:');
+disp(freq_mag_C4_D4_E4);
+disp('E4.wav:');
+disp(freq_mag_E4);

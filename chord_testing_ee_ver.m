@@ -1,5 +1,7 @@
 % File name of the .wav file
 fileName = 'C4_G4_C5.wav';
+% fileName = 'C4_D4_E4.wav';
+name = strrep(fileName, '_', '\_'); % display "_" in figure 
 
 
 % Read the .wav file
@@ -29,14 +31,14 @@ y_fft = y_fft(validFreqIdx);   % Filter FFT results
 mag = abs(y_fft);         % Magnitudes of the FFT divided by sampling rate
 globalMax = max(mag);          % Find the global maximum magnitude
 
-% Split frequencies into 20 Hz intervals
-freqBins = 0:20:maxFreq;       % Create frequency bins of 20 Hz intervals
+% Split frequencies into 18 Hz intervals
+freqBins = 0:18:maxFreq;       % Create frequency bins of 18 Hz intervals
 temp_f = [];                   % Initialize new frequency array
 temp_mag = [];                 % Initialize new magnitude array
 
-% Loop over each 20 Hz interval
+% Loop over each 18 Hz interval
 for j = 1:length(freqBins)-1
-    % Find the indices of frequencies within the current 20 Hz bin
+    % Find the indices of frequencies within the current 18 Hz bin
     binIdx = (f >= freqBins(j)) & (f < freqBins(j+1));
     bin_frequencies = f(binIdx);  % Frequencies in the current bin
     bin_magnitudes = mag(binIdx); % Magnitudes in the current bin
@@ -90,7 +92,7 @@ freq_magnitude = [temp_f; temp_mag];  % Create a 2-row matrix: 1st row frequenci
 freq_magnitude_initial = freq_magnitude;
 % Plot the FFT magnitude spectrum as spikes (stem plot without circles)
 stem(temp_f, temp_mag, 'Marker', 'none', 'LineWidth', 1.2); % Remove markers on spikes
-title(['FFT of ' fileName ' (0-3000 Hz, Magnitude > 1/20 Global Max)']);
+title(['FFT of ' name ' (0-3000 Hz, Magnitude > 1/20 Global Max)']);
 xlabel('Frequency (Hz)');
 ylabel('Normalized Magnitude');
 xlim([0 3000]);  % Set frequency range from 0 to 3000 Hz
@@ -119,7 +121,7 @@ pitch = [noteNames{noteIdx}, num2str(octave)];  % Form the pitch string (e.g., "
 lowestFreqMagnitude = temp_mag(minIndex);
 
 % Display the result
-disp(['pitch: ', pitch, ', magnitude: ', num2str(lowestFreqMagnitude)]);
+disp(['pitch: ', pitch, ', frequency: ', num2str(lowestFreq) ,', magnitude: ', num2str(lowestFreqMagnitude)]);
 
 matrixName = ['freq_mag_' pitch]; % Construct the matrix name
 freq_mag_funda = eval(matrixName); % Evaluate the matrix name
@@ -165,7 +167,7 @@ end
 
 
 % Remove frequencies with magnitudes less than 0.01
-threshold = 15; % Magnitude threshold
+threshold = 10; % Magnitude threshold
 validIndices = temp_mag >= threshold; % Find indices where magnitude is above the threshold
 
 % Update temp_f and temp_mag by keeping only valid indices
@@ -183,9 +185,10 @@ ylim([0 250]);
 
 % Output the updated frequency and magnitude matrix
 freq_magnitude = [temp_f; temp_mag]; % Create a 2-row matrix: 1st row frequencies, 2nd row magnitudes
+% display(freq_magnitude);
 end
 
-disp('Notes and their corresponding LowestFreqMagnitude:');
-for i = 1:size(notesWithMagnitudes, 1)
-    disp([notesWithMagnitudes{i, 1}, ' with magnitude: ', num2str(notesWithMagnitudes{i, 2})]);
-end
+%disp('Notes and their corresponding LowestFreqMagnitude:');
+%for i = 1:size(notesWithMagnitudes, 1)
+%    disp([notesWithMagnitudes{i, 1}, ' with magnitude: ', num2str(notesWithMagnitudes{i, 2})]);
+%end

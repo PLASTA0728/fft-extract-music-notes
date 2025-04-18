@@ -1,5 +1,5 @@
 % File name of the .wav file
-fileName = 'C4_G4_C5.wav';
+fileName = 'B3_F4_D5.wav';
 
 
 % Read the .wav file
@@ -183,9 +183,4 @@ ylim([0 250]);
 
 % Output the updated frequency and magnitude matrix
 freq_magnitude = [temp_f; temp_mag]; % Create a 2-row matrix: 1st row frequencies, 2nd row magnitudes
-end
-
-disp('Notes and their corresponding LowestFreqMagnitude:');
-for i = 1:size(notesWithMagnitudes, 1)
-    disp([notesWithMagnitudes{i, 1}, ' with magnitude: ', num2str(notesWithMagnitudes{i, 2})]);
 end
